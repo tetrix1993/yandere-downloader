@@ -1,10 +1,11 @@
-from apputil import download_image, get_soup
+from apputil import *
 import json
 import os
 import requests
 
 HTTP_HEADER = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
 CONFIG_FILE = 'config.json'
+LOGPATH = 'logpathfull'
 config = {}
 
 
@@ -36,11 +37,11 @@ def read_config_file():
             if not os.path.exists(logpath):
                 os.makedirs(logpath)
             if 'download' in config['logpath']:
-                config['logpathfull'] = logpath + '/' + config['logpath']['download']
+                config[LOGPATH] = logpath + '/' + config['logpath']['download']
             else:
-                config['logpathfull'] = None
+                config[LOGPATH] = None
         else:
-            config['logpathfull'] = None
+            config[LOGPATH] = None
 
         if not 'download_type' in config:
             config['download_type'] = 'full'
@@ -65,15 +66,15 @@ def execute_main_page():
             continue
 
         if choice == 1:
-            print('By image IDs')
+            process_image()
         elif choice == 2:
-            process_artist()
-        elif choice == 3:
             process_pool()
+        elif choice == 3:
+            process_artist()
         elif choice == 4:
-            print('By tag')
+            process_tag()
         elif choice == 5:
-            print('By user')
+            process_user()
         elif choice != 0:
             print('[ERROR] Enter choices between 1 to 4. Enter 0 to exit program.')
 
@@ -82,24 +83,55 @@ def print_main_page_message():
     print('[INFO] Loading Main Screen...')
     print('Select option to download: ')
     print('1: By image ID')
-    print('2: By artist name')
-    print('3: By pool ID')
+    print('2: By pool ID')
+    print('3: By artist name')
     print('4: By tag name')
     print('5: By user name')
     print('0: Quit program')
 
 
-def process_artist():
-    print('[INFO] Option 2 selected - Download by artist name')
-    artist = input('Enter artist name: ').strip()
-    if ' ' in artist:
-        print('[ERROR] Invalid artist name - Space is not allowed!')
+def process_image():
+    print('[INFO] Option 1 selected - Download by image IDs')
+    expr = input('Enter image IDs: ')
+    image_ids = get_numbers_from_expression(expr)
+    if len(image_ids) == 0:
+        print('[ERROR] Invalid expression')
         return
+
+    save_folders = config['save_folders']
+    base_folder = save_folders['base']
+    image_folder = save_folders['image']
+    folder = '%s/%s' % (base_folder, image_folder)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    download_type = config['download_type']
+    for image_id in image_ids:
+        url = 'https://yande.re/post/show/' + str(image_id)
+        try:
+            soup = get_soup(url)
+            if soup:
+                image_url = None
+                if download_type == 'sample':
+                    meta_tag = soup.find('meta', {'property': 'og:image'})
+                    if meta_tag and meta_tag.has_attr('content'):
+                        image_url = meta_tag['content']
+                else:
+                    a_tag = soup.find('a', id='highres-show')
+                    if a_tag and a_tag.has_attr('href'):
+                        image_url = a_tag['href']
+                if image_url:
+                    download_image(image_url, folder + '/' + str(image_id), logpath=config[LOGPATH])
+        except Exception as e:
+            print('[ERROR] Error in processing image ID %s' % str(image_id))
+            print(e)
+
+    delete_empty_folders(folder)
 
 
 def process_pool():
     global config
-    print('[INFO] Option 3 selected - Download by pool ID')
+    print('[INFO] Option 2 selected - Download by pool ID')
     try:
         pool = int(input('Enter pool ID: ').strip())
     except ValueError:
@@ -131,20 +163,44 @@ def process_pool():
         if 'posts' in output:
             for post in output['posts']:
                 if 'id' in post:
-                    pool_id = post['id']
+                    image_id = post['id']
                     if download_type == 'sample' and 'sample_url' in post:
                         image_url = post['sample_url']
                     elif 'file_url' in post:
                         image_url = post['file_url']
                     else:
                         continue
-                    if (first == 0 and last == 0) or first <= pool_id <= last:
-                        download_image(image_url, folder + '/' + str(pool_id), logpath=config['logpathfull'])
+                    if (first == 0 and last == 0) or first <= image_id <= last:
+                        download_image(image_url, folder + '/' + str(image_id), logpath=config[LOGPATH])
     except Exception as e:
         print('[ERROR] Error in processing pool ID %s' % str(pool))
         print(e)
 
     delete_empty_folders(folder)
+
+
+def process_artist():
+    print('[INFO] Option 3 selected - Download by artist name')
+    artist = input('Enter artist name: ').strip()
+    if ' ' in artist:
+        print('[ERROR] Invalid artist name - Space is not allowed!')
+        return
+
+
+def process_tag():
+    print('[INFO] Option 4 selected - Download by tag name')
+    artist = input('Enter tag name: ').strip()
+    if ' ' in artist:
+        print('[ERROR] Invalid tag name - Space is not allowed!')
+        return
+
+
+def process_user():
+    print('[INFO] Option 5 selected - Download by user name')
+    artist = input('Enter user name: ').strip()
+    if ' ' in artist:
+        print('[ERROR] Invalid user name - Space is not allowed!')
+        return
 
 
 def get_image_id_range():

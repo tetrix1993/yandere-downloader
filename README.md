@@ -9,8 +9,8 @@ The following package is required:
    * requests
 
 ## Features
-* Currently only images can be downloaded by Pool ID.
-* There are plans to download by image ID, artist, tags and user.
+* Download by Image ID and Pool ID
+* Download by Artist, Tag and User (coming soon)
 
 ## Instructions
 * Execute `run.py` on Command Prompt (or Terminal in Mac).

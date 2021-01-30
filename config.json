@@ -1,6 +1,7 @@
 {
   "save_folders": {
     "base": "download",
+    "image": "image",
     "artist": "artist",
     "pool": "pool",
     "tag": "tag",
