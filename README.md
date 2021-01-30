@@ -15,3 +15,16 @@ The following package is required:
 
 ## Instructions
 * Execute `run.py` on Command Prompt (or Terminal in Mac).
+* Option 1: Download by Image ID:
+    * Input `3` to download image ID 3.
+    * Input `2-5` to download image ID 2 to 5.
+    * Input `5,8` to download image ID 5 and 8.
+    * Example of image ID: `737516` from `https://yande.re/post/show/737516`
+* Option 2: Download by Pool ID:
+    * Just specify the Pool ID (e.g. `97960` from `https://yande.re/pool/show/97670`)
+    * Specify the range of image ID to download
+        * Input `0` to download all
+* Option 3: Download by tag:
+    * E.g. `dress` from `https://yande.re/post?tags=dress`
+* Option 4: Download by user:
+    * E.g. `drop` from `https://yande.re/post?tags=user%3Adrop` (after `user%3A`)
