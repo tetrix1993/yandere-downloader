@@ -46,6 +46,12 @@ def read_config_file():
         if not 'download_type' in config:
             config['download_type'] = 'full'
 
+        if 'max_pages' in config:
+            if not isinstance(config['max_pages'], int):
+                is_invalid = True
+        else:
+            config['max_pages'] = 5
+
         if is_invalid:
             print("[ERROR] The configuration file %s is invalid." % CONFIG_FILE)
             config = None
@@ -70,10 +76,8 @@ def execute_main_page():
         elif choice == 2:
             process_pool()
         elif choice == 3:
-            process_artist()
-        elif choice == 4:
             process_tag()
-        elif choice == 5:
+        elif choice == 4:
             process_user()
         elif choice != 0:
             print('[ERROR] Enter choices between 1 to 4. Enter 0 to exit program.')
@@ -84,9 +88,8 @@ def print_main_page_message():
     print('Select option to download: ')
     print('1: By image ID')
     print('2: By pool ID')
-    print('3: By artist name')
-    print('4: By tag name')
-    print('5: By user name')
+    print('3: By tag')
+    print('4: By user')
     print('0: Quit program')
 
 
@@ -179,57 +182,138 @@ def process_pool():
     delete_empty_folders(folder)
 
 
-def process_artist():
-    print('[INFO] Option 3 selected - Download by artist name')
-    artist = input('Enter artist name: ').strip()
-    if ' ' in artist:
-        print('[ERROR] Invalid artist name - Space is not allowed!')
-        return
-
-
 def process_tag():
-    print('[INFO] Option 4 selected - Download by tag name')
-    artist = input('Enter tag name: ').strip()
-    if ' ' in artist:
+    print('[INFO] Option 3 selected - Download by tag')
+    tag = input('Enter tag name: ').strip()
+    if ' ' in tag:
         print('[ERROR] Invalid tag name - Space is not allowed!')
         return
 
+    if len(tag) == 0:
+        return
+
+    save_folders = config['save_folders']
+    base_folder = save_folders['base']
+    tag_folder = save_folders['tag']
+    folder = '%s/%s/%s' % (base_folder, tag_folder, tag)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    process_search_page(tag, folder, is_tag=True)
+    delete_empty_folders(folder)
+
 
 def process_user():
-    print('[INFO] Option 5 selected - Download by user name')
-    artist = input('Enter user name: ').strip()
-    if ' ' in artist:
+    print('[INFO] Option 4 selected - Download by user name')
+    user = input('Enter user name: ').strip()
+    if ' ' in user:
         print('[ERROR] Invalid user name - Space is not allowed!')
         return
 
+    if len(user) == 0:
+        return
 
-def get_image_id_range():
+    save_folders = config['save_folders']
+    base_folder = save_folders['base']
+    user_folder = save_folders['user']
+    folder = '%s/%s/%s' % (base_folder, user_folder, user)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    process_search_page('user%3A' + user, folder)
+    delete_empty_folders(folder)
+
+
+def process_search_page(tag, folder, is_tag=False):
+    first, last = get_image_id_range(is_tag)
+    if first is None or last is None:
+        return
+    if last == 0:
+        last = 999999999
+    for i in range(config['max_pages']):
+        page = i + 1
+        if is_tag:
+            if page < first:
+                continue
+            if page > last:
+                break
+        page_url = 'https://yande.re/post?page=%s&tags=%s' % (str(page), tag)
+        try:
+            soup = get_soup(page_url)
+            result = process_page(folder, first, last, soup, page_url, is_tag)
+            if result != 0:
+                break
+            if not has_next_page(soup):
+                break
+        except Exception as e:
+            print('[ERROR] Error in processing %s' % page_url)
+            print(e)
+
+
+def process_page(folder, first, last, soup, page_url, is_tag=False):
+    try:
+        lis = soup.find('div', class_='content').find_all('li')
+        first_id = int(lis[0]['id'][1:])
+        last_id = int(lis[-1]['id'][1:])
+        if is_tag or (last >= last_id and first <= first_id):
+            for li in lis:
+                id = int(li['id'][1:])
+                if is_tag or (first <= id <= last):
+                    image_url = li.find('a', class_='largeimg')['href']
+                    download_image(image_url, folder + '/' + str(id))
+        if first > last_id:
+            return 1
+    except Exception as e:
+        print('[ERROR] Error in processing %s' % page_url)
+        print(e)
+        return -1
+    return 0
+
+
+def has_next_page(soup):
+    paginator = soup.find('div', id='paginator')
+    if paginator:
+        pagination = paginator.find('div', class_='pagination')
+        return pagination is not None
+    return False
+
+
+def get_image_id_range(is_tag=False):
     first = None
     last = None
 
+    if is_tag:
+        input_msg = 'Enter first page (enter 0 to download all): '
+        input_msg_last = 'Enter last page: '
+        invalid_msg = '[ERROR] Invalid page'
+        validate_msg = '[ERROR] First page is greater than last page'
+    else:
+        input_msg = 'Enter first image ID (enter 0 to download all): '
+        input_msg_last = 'Enter last image ID: '
+        invalid_msg = '[ERROR] Invalid Image ID'
+        validate_msg = '[ERROR] First image ID is greater than last image ID'
+
     try:
-        first = int(input('Enter first image ID (enter 0 to download all): ').strip())
+        first = int(input(input_msg).strip())
     except ValueError:
-        print('[ERROR] Invalid Image ID')
+        print(invalid_msg)
 
     if first is not None:
         if first == 0:
             last = 0
         elif first < 0:
-            print('[ERROR] Invalid Image ID')
+            print(invalid_msg)
             first = None
         else:
             try:
-                last = int(input('Enter last image ID: ').strip())
+                last = int(input(input_msg_last).strip())
             except ValueError:
-                print('[ERROR] Invalid Image ID')
+                print(invalid_msg)
             if last is not None and last < 0:
-                print('[ERROR] Invalid Image ID')
+                print(invalid_msg)
                 last = None
     if first is None or last is None:
         return None, None
     elif first > last:
-        print('[ERROR] First image ID is greater than last image ID')
+        print(validate_msg)
         return None, None
     return first, last
 

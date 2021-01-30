@@ -11,6 +11,6 @@
     "base_folder": "log",
     "download": "download_log.tsv"
   },
-  "max_pages": 2,
+  "max_pages": 10,
   "download_type": "full"
 }

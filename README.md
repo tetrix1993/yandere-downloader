@@ -9,8 +9,7 @@ The following package is required:
    * requests
 
 ## Features
-* Download by Image ID and Pool ID
-* Download by Artist, Tag and User (coming soon)
+* Download by Image ID, Pool ID, Artist, Tag and User
 
 ## Instructions
 * Execute `run.py` on Command Prompt (or Terminal in Mac).
