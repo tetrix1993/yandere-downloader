@@ -11,7 +11,7 @@ The following package is required:
    * requests
 
 ## Features
-* Download by Image ID, Pool ID, Artist, Tag and User
+* Download by Image ID, Pool ID, Tag and User
 
 ## Instructions
 * Execute `run.py` on Command Prompt (or Terminal in Mac).

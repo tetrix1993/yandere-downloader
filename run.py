@@ -25,7 +25,7 @@ def read_config_file():
             config = json.load(f)
         is_invalid = False
         if 'save_folders' in config:
-            for i in ['base', 'artist', 'pool', 'tag', 'user']:
+            for i in ['base', 'pool', 'tag', 'user']:
                 if i not in config['save_folders']:
                     is_invalid = True
                     break
@@ -79,17 +79,20 @@ def execute_main_page():
             process_tag()
         elif choice == 4:
             process_user()
+        elif choice == 5:
+            view_configs()
         elif choice != 0:
             print('[ERROR] Enter choices between 1 to 4. Enter 0 to exit program.')
 
 
 def print_main_page_message():
     print('[INFO] Loading Main Screen...')
-    print('Select option to download: ')
-    print('1: By image ID')
-    print('2: By pool ID')
-    print('3: By tag')
-    print('4: By user')
+    print('Select option: ')
+    print('1: Download by image ID')
+    print('2: Download by pool ID')
+    print('3: Download by tag')
+    print('4: Download by user')
+    print('5: View configuration settings')
     print('0: Quit program')
 
 
@@ -251,6 +254,8 @@ def process_search_page(tag, folder, is_tag=False):
 def process_page(folder, first, last, soup, page_url, is_tag=False):
     try:
         lis = soup.find('div', class_='content').find_all('li')
+        if len(lis) == 0:
+            return 1
         first_id = int(lis[0]['id'][1:])
         last_id = int(lis[-1]['id'][1:])
         if is_tag or (last >= last_id and first <= first_id):
@@ -330,11 +335,39 @@ def delete_empty_folders(filepath):
             os.removedirs(path)
 
 
+def delete_all_empty_folders(base_folder):
+    folders = os.listdir(base_folder)
+    if len(folders) == 0:
+        os.removedirs(base_folder)
+        return
+    for i in folders:
+        folder = base_folder + '/' + i
+        if os.path.isdir(folder):
+            delete_all_empty_folders(folder)
+
+
+def view_configs():
+    print('[INFO] Here the save locations used to save the images. The configurations can be set in the file %s' % CONFIG_FILE)
+    save_folders = config['save_folders']
+    save_folder = save_folders['base'] + '/'
+    print('Image Folder: %s' % (save_folder + save_folders['image']))
+    print('Pool Folder: %s' % (save_folder + save_folders['pool']))
+    print('Tag Folder: %s' % (save_folder + save_folders['tag']))
+    print('User Folder: %s' % (save_folder + save_folders['user']))
+    if config[LOGPATH]:
+        print('Download Logs File: %s' % config[LOGPATH])
+    input('[INFO] Press any key to continue...')
+
+
 def close():
     global config
+    if config is None:
+        return
     if 'logpath' in config and 'base_folder' in config['logpath']:
         logpath = config['logpath']['base_folder'].strip()
         delete_empty_folders(logpath)
+    base_folder = config['save_folders']['base']
+    delete_all_empty_folders(base_folder)
     print('[INFO] Exiting program...')
 
 
