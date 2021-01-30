@@ -1,0 +1,15 @@
+{
+  "save_folders": {
+    "base": "download",
+    "artist": "artist",
+    "pool": "pool",
+    "tag": "tag",
+    "user": "user"
+  },
+  "logpath": {
+    "base_folder": "log",
+    "download": "download_log.tsv"
+  },
+  "max_pages": 2,
+  "download_type": "full"
+}
