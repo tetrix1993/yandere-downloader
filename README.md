@@ -19,6 +19,7 @@ The following package is required:
     * Input `3` to download image ID 3.
     * Input `2-5` to download image ID 2 to 5.
     * Input `5,8` to download image ID 5 and 8.
+    * Input `2-5,7,9-11` to download image ID 2, 3, 4, 5, 7, 9, 10, 11
     * Example of image ID: `737516` from `https://yande.re/post/show/737516`
 * Option 2: Download by Pool ID:
     * Just specify the Pool ID (e.g. `97960` from `https://yande.re/pool/show/97670`)
