@@ -65,12 +65,14 @@ def execute_main_page():
             continue
 
         if choice == 1:
-            process_artist()
+            print('By image IDs')
         elif choice == 2:
-            process_pool()
+            process_artist()
         elif choice == 3:
-            print('By tag')
+            process_pool()
         elif choice == 4:
+            print('By tag')
+        elif choice == 5:
             print('By user')
         elif choice != 0:
             print('[ERROR] Enter choices between 1 to 4. Enter 0 to exit program.')
@@ -79,15 +81,16 @@ def execute_main_page():
 def print_main_page_message():
     print('[INFO] Loading Main Screen...')
     print('Select option to download: ')
-    print('1: By artist name')
-    print('2: By pool ID')
-    print('3: By tag name')
-    print('4: By user name')
+    print('1: By image ID')
+    print('2: By artist name')
+    print('3: By pool ID')
+    print('4: By tag name')
+    print('5: By user name')
     print('0: Quit program')
 
 
 def process_artist():
-    print('[INFO] Option 1 selected - Download by artist name')
+    print('[INFO] Option 2 selected - Download by artist name')
     artist = input('Enter artist name: ').strip()
     if ' ' in artist:
         print('[ERROR] Invalid artist name - Space is not allowed!')
@@ -96,7 +99,7 @@ def process_artist():
 
 def process_pool():
     global config
-    print('[INFO] Option 2 selected - Download by pool ID')
+    print('[INFO] Option 3 selected - Download by pool ID')
     try:
         pool = int(input('Enter pool ID: ').strip())
     except ValueError:
