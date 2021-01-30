@@ -9,6 +9,7 @@ def download_image(url, filepath_without_extension, logpath=None, headers=None):
 
     # Check local directory if the file exists
     if os.path.exists(filepath):
+        print('[INFO] File exists: %s' % filepath)
         return False
 
     if headers is None:

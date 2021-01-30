@@ -29,3 +29,5 @@ The following package is required:
     * E.g. `dress` from `https://yande.re/post?tags=dress`
 * Option 4: Download by user:
     * E.g. `drop` from `https://yande.re/post?tags=user%3Adrop` (after `user%3A`)
+* Option 5: View configuration settings
+    * View the save locations of the images. You may change them in `config.json`.

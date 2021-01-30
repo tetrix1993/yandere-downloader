@@ -263,7 +263,7 @@ def process_page(folder, first, last, soup, page_url, is_tag=False):
                 id = int(li['id'][1:])
                 if is_tag or (first <= id <= last):
                     image_url = li.find('a', class_='largeimg')['href']
-                    download_image(image_url, folder + '/' + str(id))
+                    download_image(image_url, folder + '/' + str(id), logpath=config[LOGPATH])
         if first > last_id:
             return 1
     except Exception as e:
