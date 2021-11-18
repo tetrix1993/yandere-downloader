@@ -262,7 +262,12 @@ def process_page(folder, first, last, soup, page_url, is_tag=False):
             for li in lis:
                 id = int(li['id'][1:])
                 if is_tag or (first <= id <= last):
-                    image_url = li.find('a', class_='largeimg')['href']
+                    directlink = li.find('a', class_='directlink')
+                    if directlink is not None and directlink.has_attr('href'):
+                        image_url = directlink['href']
+                    else:
+                        print(f'Skipped image ID {id} as image URL not found')
+                        continue
                     download_image(image_url, folder + '/' + str(id), logpath=config[LOGPATH])
         if first > last_id:
             return 1
@@ -336,14 +341,15 @@ def delete_empty_folders(filepath):
 
 
 def delete_all_empty_folders(base_folder):
-    folders = os.listdir(base_folder)
-    if len(folders) == 0:
-        os.removedirs(base_folder)
-        return
-    for i in folders:
-        folder = base_folder + '/' + i
-        if os.path.isdir(folder):
-            delete_all_empty_folders(folder)
+    if os.path.exists(base_folder):
+        folders = os.listdir(base_folder)
+        if len(folders) == 0:
+            os.removedirs(base_folder)
+            return
+        for i in folders:
+            folder = base_folder + '/' + i
+            if os.path.isdir(folder):
+                delete_all_empty_folders(folder)
 
 
 def view_configs():
